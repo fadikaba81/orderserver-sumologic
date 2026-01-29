@@ -249,3 +249,48 @@ Senior SRE / Cloud & Observability Engineer
 ## 📜 License
 
 This project is provided for learning and demonstration purposes.
+
+Sample Output 
+
+```
+2026-01-29T21:45:31+11:00, Dev,21,This is a logs from 9MnVvFq25HbyHAOWDcX8W,200, SSH, 21
+2026-01-29T21:45:33+11:00, PTest,6,This is a logs from XezOCQ,404, FTP, 21
+2026-01-29T21:45:33+11:00, STest,16,This is a logs from N1ALVhNgU2X1pNrl,200, ICMP, -1
+2026-01-29T21:45:34+11:00, Prod,6,This is a logs from coVbT7,201, HTTP, 80
+2026-01-29T21:45:34+11:00, VTest,15,This is a logs from PIOCjm1TAddiknY,500, FTP, 21
+2026-01-29T21:45:36+11:00, Dev,2,This is a logs from AM,400, HTTP, 80
+2026-01-29T21:45:36+11:00, PTest,28,This is a logs from RqbuilNLufVvyAKne6gVQcSxrFti,400, HTTP, 80
+2026-01-29T21:45:37+11:00, Prod,2,This is a logs from nQ,200, ICMP, -1
+2026-01-29T21:45:38+11:00, Dev,10,This is a logs from LgxrAW8a4s,200, ICMP, -1
+2026-01-29T21:45:38+11:00, VTest,12,This is a logs from xBdSwl6SzIsa,404, HTTP, 80
+2026-01-29T21:45:39+11:00, STest,10,This is a logs from 4qGa1ihYQe,200, ICMP, -1
+2026-01-29T21:45:39+11:00, Dev,21,This is a logs from zZAaonqOVsnT7D6sngrmR,400, ICMP, -1
+2026-01-29T21:45:40+11:00, Prod,0,This is a logs from ,500, HTTPS, 443
+2026-01-29T21:45:40+11:00, VTest,11,This is a logs from gAt7zq1JEfl,503, SSH, 21
+2026-01-29T21:45:41+11:00, VTest,8,This is a logs from J97kRCAD,201, SSH, 21
+2026-01-29T21:45:41+11:00, Prod,16,This is a logs from ui7Jh1G6N4KTib2Z,503, HTTP, 80
+2026-01-29T21:45:42+11:00, PTest,4,This is a logs from Hxd6,200, ICMP, -1
+2026-01-29T21:45:43+11:00, VTest,26,This is a logs from PaiejHIEaOQj7Nvv2wq8mpsCq0,500, HTTPS, 443
+2026-01-29T21:45:43+11:00, Prod,1,This is a logs from R,200, HTTP, 80
+2026-01-29T21:45:44+11:00, VTest,9,This is a logs from fZCr5SyOw,201, SSH, 21
+2026-01-29T21:45:45+11:00, STest,27,This is a logs from gIJKfxkeuHfLuebuEkI7JZeSMdn,200, HTTP, 80
+2026-01-29T21:45:45+11:00, Dev,17,This is a logs from R9wYi6HTLNbEDNLrj,404, ICMP, -1
+2026-01-29T21:45:46+11:00, Prod,29,This is a logs from 2ZI2Hf6WsDxjJOXm7D5fe37lszACZ,400, HTTPS, 443
+2026-01-29T21:45:46+11:00, VTest,27,This is a logs from w9ksLvssCclnopIkrZzD7wZ9dfV,404, SSH, 21
+2026-01-29T21:45:47+11:00, PTest,2,This is a logs from kx,503, HTTPS, 443
+2026-01-29T21:45:47+11:00, PTest,8,This is a logs from MPCtsjRZ,503, ICMP, -1
+2026-01-29T21:45:48+11:00, STest,26,This is a logs from 594PevmzvEgY96vyoBNB9mfYgI,200, HTTPS, 443
+2026-01-29T21:45:49+11:00, VTest,18,This is a logs from 3l3sDWZpH7pZcvCev7,201, ICMP, -1
+2026-01-29T21:45:49+11:00, PTest,4,This is a logs from Luya,404, FTP, 21
+2026-01-29T21:45:50+11:00, Prod,2,This is a logs from lf,404, HTTPS, 443
+2026-01-29T21:45:50+11:00, PTest,22,This is a logs from 4elDY1F1IPDaTgkctK1PKJ,503, ICMP, -1
+2026-01-29T21:45:51+11:00, PTest,7,This is a logs from q5hWKqq,201, ICMP, -1
+2026-01-29T21:45:51+11:00, STest,7,This is a logs from Y9YvxvX,503, ICMP, -1
+2026-01-29T21:45:52+11:00, VTest,3,This is a logs from tY9,200, HTTPS, 443
+2026-01-29T21:45:52+11:00, STest,25,This is a logs from daMQAX10l21ymuYrkdwHTAXrk,503, HTTPS, 443
+2026-01-29T21:45:53+11:00, VTest,7,This is a logs from 6KPBC2b,503, HTTP, 80
+2026-01-29T21:45:53+11:00, STest,18,This is a logs from SMhYbisdC8QydPIrz8,503, HTTPS, 443
+2026-01-29T21:45:54+11:00, STest,21,This is a logs from sP7nRYBBZeet83FpZaFNF,400, HTTPS, 443
+2026-01-29T21:45:55+11:00, Dev,7,This is a logs from mHe0KqZ,404, SSH, 21
+2026-01-29T21:45:55+11:00, Prod,25,This is a logs from jD8Rx5bR8jnPY7WwK83hsKrIY,500, SSH, 21
+```
