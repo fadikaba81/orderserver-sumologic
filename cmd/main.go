@@ -42,7 +42,19 @@ var (
         logs []OrderLog
 )
 
-// ---------- Utilities ----------
+// Spike control
+var (
+        nextSpikeTime time.Time
+        remaining5xx  int
+)
+
+// ---------- Helpers ----------
+
+func random5xxDelay() time.Duration {
+        min := 10 * time.Minute
+        max := 20 * time.Minute
+        return min + time.Duration(rand.Int63n(int64(max-min)))
+}
 
 func randomString(n int) string {
         letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -64,11 +76,46 @@ func levelFromHTTPCode(code int) string {
         }
 }
 
+// ---------- Error Spike Logic ----------
+
+func getCode() int {
+        now := time.Now()
+
+        // ---- Active spike: force 5xx ----
+        if remaining5xx > 0 {
+                remaining5xx--
+                if rand.Intn(2) == 0 {
+                        return 500
+                }
+                return 503
+        }
+
+        // ---- Start new spike ----
+        if now.After(nextSpikeTime) && rand.Float64() < 0.02 {
+                remaining5xx = 100 + rand.Intn(6) // 15–20 errors
+                nextSpikeTime = now.Add(random5xxDelay())
+
+                log.Printf("🔥 5xx SPIKE started (%d errors)", remaining5xx)
+
+                // Emit first error immediately
+                remaining5xx--
+                if rand.Intn(2) == 0 {
+                        return 500
+                }
+                return 503
+        }
+
+        // ---- Normal traffic ----
+        if rand.Float64() < 0.80 {
+                return 200
+        }
+        return 404
+}
+
 // ---------- Background Log Generator ----------
 
 func startLogGenerator() {
         envs := []string{"Dev", "PTest", "STest", "VTest", "Prod"}
-        httpCodes := []int{200, 201, 400, 404, 500, 503}
         ports := []PortDef{
                 {"HTTP", 80},
                 {"HTTPS", 443},
@@ -78,7 +125,7 @@ func startLogGenerator() {
 
         go func() {
                 for {
-                        code := httpCodes[rand.Intn(len(httpCodes))]
+                        code := getCode()
                         p := ports[rand.Intn(len(ports))]
 
                         entry := OrderLog{
@@ -107,11 +154,9 @@ func startLogGenerator() {
         }()
 }
 
-// ---------- API Pull Handler (SUMO SAFE) ----------
+// ---------- API Handler ----------
 
 func orderHandler(w http.ResponseWriter, r *http.Request) {
-
-        // Always return 200 + JSON
         w.Header().Set("Content-Type", "application/json")
 
         if r.Method != http.MethodGet {
@@ -125,7 +170,6 @@ func orderHandler(w http.ResponseWriter, r *http.Request) {
         start, errStart := time.Parse(time.RFC3339, startStr)
         end, errEnd := time.Parse(time.RFC3339, endStr)
 
-        // IMPORTANT: non-nil slice
         result := make([]OrderLog, 0)
 
         if errStart != nil || errEnd != nil {
@@ -146,8 +190,8 @@ func orderHandler(w http.ResponseWriter, r *http.Request) {
         mu.Unlock()
 
         log.Printf(
-                "API HIT from=%s method=%s start=%s end=%s count=%d",
-                r.RemoteAddr, r.Method, startStr, endStr, len(result),
+                "API HIT from=%s start=%s end=%s count=%d",
+                r.RemoteAddr, startStr, endStr, len(result),
         )
 
         json.NewEncoder(w).Encode(result)
@@ -160,7 +204,6 @@ func main() {
 
         startLogGenerator()
 
-        // Catch-all to avoid path mismatch issues
         http.HandleFunc("/order", orderHandler)
         http.HandleFunc("/", orderHandler)
 
@@ -169,9 +212,7 @@ func main() {
                 TLSConfig: &tls.Config{
                         MinVersion: tls.VersionTLS10, // PoC only
                         MaxVersion: tls.VersionTLS13,
-                        NextProtos: []string{
-                                "http/1.1",
-                        },
+                        NextProtos: []string{"http/1.1"},
                 },
         }
 
