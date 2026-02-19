@@ -75,7 +75,7 @@ func pushToSumo(logEntry OrderLog) error {
 	req.Header.Set("Content-Type", "application/json")
 
 	req.Header.Set("X-Sumo-Category", "order-api/prod")
-	req.Header.Set("X-Sumo-Namey", "direct-push")
+	req.Header.Set("X-Sumo-Name", "direct-push")
 	req.Header.Set("X-Sumo-Host", "Order-API")
 
 	req.Header.Set("X-Sumo-Fields", "env=Prod,app=order-api,team=BoH")
