@@ -78,7 +78,7 @@ func pushToSumo(logEntry OrderLog) error {
 	req.Header.Set("X-Sumo-Name", "direct-push")
 	req.Header.Set("X-Sumo-Host", "Order-API")
 
-	req.Header.Set("X-Sumo-Fields", "env=Prod,app=order-api,team=BoH")
+	req.Header.Set("X-Sumo-Fields", "env=Prod,app=order-api,team=Salesforce")
 
 	client := &http.Client{
 		Timeout: 5 * time.Second,
