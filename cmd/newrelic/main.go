@@ -149,6 +149,12 @@ func orderHandler(w http.ResponseWriter, r *http.Request) {
 		txn.SetWebRequestHTTP(r)
 	}
 
+	if txn != nil {
+		txn.AddAttribute("clientIP", r.RemoteAddr)
+		txn.AddAttribute("method", r.Method)
+		txn.AddAttribute("Path", r.URL.Path)
+	}
+
 	// Always return 200 + JSON
 	w.Header().Set("Content-Type", "application/json")
 
