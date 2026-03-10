@@ -110,6 +110,40 @@ func generateCorrelationID(n int) string {
         return string(b)
 }
 
+// Get a Rand Env
+func randEnv() string {
+
+        envs := []string{"Prod", "PTEST", "STEST", "VTEST"}
+        return envs[rand.Intn(len(envs))]
+
+}
+
+func randHTTPCode() int {
+        codes := []int{
+                200,201,
+                400, 401, 403,404,
+                500, 502, 503, 504,
+        }
+
+        return codes[rand.Intn(len(codes))]
+}
+
+//Return The HTTP Code
+func generateHTTPCode() int {
+
+        now := time.Now().UTC()
+
+        if now.Minute()%5 <= 2 {
+                if rand.Float64() < 0.80 {
+                        errors := []int{500, 502, 503, 504}
+                        return errors[rand.Intn(len(errors))]
+                        
+                }
+        }
+        
+        return randHTTPCode()
+} 
+
 // ---------- HTTP Handler ----------
 
 func orderHandler(w http.ResponseWriter, r *http.Request) {
@@ -121,15 +155,12 @@ func orderHandler(w http.ResponseWriter, r *http.Request) {
         } 
 
         // Simulate occasional error
-        code := 200
-        if rand.Float64() < 0.10 {
-                code = 500
-        }
+        code := generateHTTPCode()
 
         entry := OrderLog{
                 Timestamp:     time.Now().UTC().Format(time.RFC3339),
                 Service:       "order-api",
-                Env:           "Prod",
+                Env:           randEnv(),
                 Level:         levelFromHTTPCode(code),
                 OrderID:       randomString(8),
                 CorrelationID: correlationID,
@@ -138,7 +169,7 @@ func orderHandler(w http.ResponseWriter, r *http.Request) {
                 Port:          443,
                 Message:       "order processed",
         }
-	log.Printf("CorrelationID being sent: %s", entry.CorrelationID)
+        log.Printf("CorrelationID being sent: %s", entry.CorrelationID)
 
         // Push to Sumo
         err := pushToSumo(entry)
@@ -146,7 +177,7 @@ func orderHandler(w http.ResponseWriter, r *http.Request) {
                 log.Printf("Push failed: %v", err)
         }
 
-	w.Header().Set("X-Correlation-ID", correlationID)
+        w.Header().Set("X-Correlation-ID", correlationID)
         w.Header().Set("Content-Type", "application/json")
 
         json.NewEncoder(w).Encode(entry)
@@ -164,6 +195,10 @@ func main() {
                 TLSConfig: &tls.Config{
                         MinVersion: tls.VersionTLS12,
                 },
+        }
+
+        if sumoEndpoint == "" {
+                log.Fatal("SUMO_TOKEN environment variable not set")
         }
 
         log.Printf("Starting HTTPS server on %s", port)

@@ -1,140 +1,170 @@
 package main
 
 import (
-	"bytes"
-	"crypto/tls"
-	"encoding/json"
-	"log"
-	"math/rand"
-	"net/http"
-	"time"
+        "bytes"
+        "crypto/tls"
+        "encoding/json"
+        "log"
+        "math/rand"
+        "net/http"
+        "time"
 )
 
 const (
-	port = ":443"
+        port = ":443"
 
-	certFile = "/etc/letsencrypt/live/order-api.fadikaba.com/fullchain.pem"
-	keyFile  = "/etc/letsencrypt/live/order-api.fadikaba.com/privkey.pem"
+        certFile = "/etc/letsencrypt/live/order-api.fadikaba.com/fullchain.pem"
+        keyFile  = "/etc/letsencrypt/live/order-api.fadikaba.com/privkey.pem"
 
-	// 🔥 Your Sumo HTTP Source
-	sumoEndpoint = "https://collectors.au.sumologic.com/receiver/v1/http/ZaVnC4dhaV1OED4GQvL-QHnwdg8-NAegvVXEyeAf77Hwmri99Uk7RkVbKhU8XxTmrBE47q6sj-IDgm5FTlB4LMQFZkuf5s-BplJoRSiZEiJr4BtyH-d4XQ=="
+        // 🔥 Your Sumo HTTP Source
+        sumoEndpoint = "https://collectors.au.sumologic.com/receiver/v1/http/ZaVnC4dhaV1OED4GQvL-QHnwdg8-NAegvVXEyeAf77Hwmri99Uk7RkVbKhU8XxTmrBE47q6sj-IDgm5FTlB4LMQFZkuf5s-BplJoRSiZEiJr4BtyH-d4XQ=="
 )
 
 // ---------- Log Structure ----------
 
 type OrderLog struct {
-	Timestamp string `json:"timestamp"`
-	Service   string `json:"service"`
-	Env       string `json:"env"`
-	Level     string `json:"level"`
-	OrderID   string `json:"orderId"`
-	HTTPCode  int    `json:"httpCode"`
-	PortName  string `json:"portName"`
-	Port      int    `json:"port"`
-	Message   string `json:"message"`
+        Timestamp string `json:"timestamp"`
+        Service   string `json:"service"`
+        Env       string `json:"env"`
+        Level     string `json:"level"`
+        OrderID   string `json:"orderId"`
+        HTTPCode  int    `json:"httpCode"`
+        PortName  string `json:"portName"`
+        Port      int    `json:"port"`
+        Message   string `json:"message"`
 }
 
 // ---------- Helpers ----------
 
 func randomString(n int) string {
-	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
+        letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+        b := make([]rune, n)
+        for i := range b {
+                b[i] = letters[rand.Intn(len(letters))]
+        }
+        return string(b)
 }
 
 func levelFromHTTPCode(code int) string {
-	switch {
-	case code >= 500:
-		return "ERROR"
-	case code >= 400:
-		return "WARN"
-	default:
-		return "INFO"
-	}
+        switch {
+        case code >= 500:
+                return "ERROR"
+        case code >= 400:
+                return "WARN"
+        default:
+                return "INFO"
+        }
 }
 
 // ---------- Push To Sumo ----------
 
 func pushToSumo(logEntry OrderLog) error {
 
-	payload, err := json.Marshal(logEntry)
-	if err != nil {
-		return err
-	}
+        payload, err := json.Marshal(logEntry)
+        if err != nil {
+                return err
+        }
 
-	req, err := http.NewRequest("POST", sumoEndpoint, bytes.NewBuffer(payload))
-	if err != nil {
-		return err
-	}
+        req, err := http.NewRequest("POST", sumoEndpoint, bytes.NewBuffer(payload))
+        if err != nil {
+                return err
+        }
 
-	req.Header.Set("Content-Type", "application/json")
+        req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-	}
+        client := &http.Client{
+                Timeout: 5 * time.Second,
+        }
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+        resp, err := client.Do(req)
+        if err != nil {
+                return err
+        }
+        defer resp.Body.Close()
 
-	if resp.StatusCode >= 300 {
-		log.Printf("Sumo returned status: %s", resp.Status)
-	}
+        if resp.StatusCode >= 300 {
+                log.Printf("Sumo returned status: %s", resp.Status)
+        }
 
-	return nil
+        return nil
 }
+
+func randEnv() string {
+
+        envs := []string{"Prod", "PTEST", "STEST", "VTEST"}
+        return envs[rand.Intn(len(envs))]
+
+}
+
+func randHTTPCode() int {
+        codes := []int{
+                200,201,
+                400, 401, 403,404,
+                500, 502, 503, 504,
+        }
+
+        return codes[rand.Intn(len(codes))]
+}
+
+//Return The HTTP Code
+func generateHTTPCode() int {
+
+        now := time.Now().UTC()
+
+           if now.Minute()%5 <= 2 {
+                if rand.Float64() < 0.80 {
+                        errors := []int{500, 502, 503, 504}
+                        return errors[rand.Intn(len(errors))]
+                        
+                }
+        }
+        
+        return randHTTPCode()
+} 
 
 // ---------- HTTP Handler ----------
 
 func orderHandler(w http.ResponseWriter, r *http.Request) {
 
-	code := 200
-	if rand.Float64() < 0.10 {
-		code = 500
-	}
+        code := generateHTTPCode()
 
-	entry := OrderLog{
-		Timestamp: time.Now().UTC().Format(time.RFC3339),
-		Service:   "order-api",
-		Env:       "Prod",
-		Level:     levelFromHTTPCode(code),
-		OrderID:   randomString(8),
-		HTTPCode:  code,
-		PortName:  "HTTPS",
-		Port:      443,
-		Message:   "order processed",
-	}
+        entry := OrderLog{
+                Timestamp: time.Now().UTC().Format(time.RFC3339),
+                Service:   "order-api",
+                Env:       randEnv(),
+                Level:     levelFromHTTPCode(code),
+                OrderID:   randomString(8),
+                HTTPCode:  code,
+                PortName:  "HTTPS",
+                Port:      443,
+                Message:   "order processed",
+        }
 
-	// 🔥 Push to Sumo
-	err := pushToSumo(entry)
-	if err != nil {
-		log.Printf("Push failed: %v", err)
-	}
+        // 🔥 Push to Sumo
+        err := pushToSumo(entry)
+        if err != nil {
+                log.Printf("Push failed: %v", err)
+        }
 
-	// Return to browser
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(entry)
+        // Return to browser
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(entry)
 }
 
 // ---------- Main ----------
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
+        rand.Seed(time.Now().UnixNano())
 
-	http.HandleFunc("/", orderHandler)
+        http.HandleFunc("/", orderHandler)
 
-	server := &http.Server{
-		Addr: port,
-		TLSConfig: &tls.Config{
-			MinVersion: tls.VersionTLS12,
-		},
-	}
+        server := &http.Server{
+                Addr: port,
+                TLSConfig: &tls.Config{
+                        MinVersion: tls.VersionTLS12,
+                },
+        }
 
-	log.Printf("Starting HTTPS server on %s", port)
-	log.Fatal(server.ListenAndServeTLS(certFile, keyFile))
+        log.Printf("Starting HTTPS server on %s", port)
+        log.Fatal(server.ListenAndServeTLS(certFile, keyFile))
 }

@@ -93,11 +93,19 @@ func levelFromHTTPCode(code int) string {
         }
 }
 
+//Get Rand Env
+func randEnv() string {
+
+        envs := []string{"Prod", "PTEST", "STEST", "VTEST"}
+        return envs[rand.Intn(len(envs))]
+
+}
+
 // ---------- Background Log Generator ----------
 
 func startLogGenerator() {
-		
-        envs := []string{"Dev", "PTest", "STest", "VTest", "Prod"}
+
+        //envs := []string{"Dev", "PTest", "STest", "VTest", "Prod"}
         httpCodes := []int{200, 201, 400, 404, 500, 503}
         ports := []PortDef{
                 {"HTTP", 80},
@@ -108,14 +116,14 @@ func startLogGenerator() {
 
         go func() {
                 for {
-						start := time.Now()
+                                                start := time.Now()
                         code := httpCodes[rand.Intn(len(httpCodes))]
                         p := ports[rand.Intn(len(ports))]
 
                         entry := OrderLog{
                                 Timestamp: time.Now().UTC().Format(time.RFC3339),
                                 Service:   "order-api",
-                                Env:       envs[rand.Intn(len(envs))],
+                                Env:       randEnv(),
                                 Level:     levelFromHTTPCode(code),
                                 OrderID:   randomString(8),
                                 HTTPCode:  code,
@@ -123,8 +131,8 @@ func startLogGenerator() {
                                 Port:      p.Number,
                                 Message:   "order processed",
                         }
-						time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond)
-						latency := time.Since(start).Milliseconds()
+                                                time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond)
+                                                latency := time.Since(start).Milliseconds()
 
                         mu.Lock()
                         logs = append(logs, entry)
@@ -145,12 +153,12 @@ func startLogGenerator() {
                                 nrApp.RecordCustomEvent("OrderMetric", map[string]interface{}{
                                         "httpCode": code,
                                         "service":  "order-api",
-										"count": 1,
-										"env": entry.Env,
-										"portName": entry.PortName,
-										"portNumber": entry.Port,
-										"latencyMs": latency,
-								})
+                                                                                "count": 1,
+                                                                                "env": entry.Env,
+                                                                                "portName": entry.PortName,
+                                                                                "portNumber": entry.Port,
+                                                                                "latencyMs": latency,
+                                                                })
                         }
                         time.Sleep(500 * time.Millisecond)
                 }
